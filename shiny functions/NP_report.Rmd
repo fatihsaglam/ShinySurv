@@ -1,0 +1,81 @@
+---
+title: "Non-Parametric Survival Report"
+output:
+    word_document:
+      fig_caption: yes
+      always_allow_html: true
+params:
+  results: NULL
+  plot: NULL
+  curve_type: NULL
+  comp_type: NULL
+  p_adjust_type: NULL
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# RAPOR
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(knitr)
+library(ggplot2)
+library(flextable)
+library(officer)
+# library(officedown)
+library(kableExtra)
+
+results <- params$results
+curve_type <- params$curve_type
+comp_type <- params$comp_type
+plot <- params$plot
+
+k <- length(results$mean_median_tbls)
+group_levels <- names(results$mean_median_tbls)
+
+mean_median_tbls <- results$mean_median_tbls
+
+mean_median_tbls <- NP_tbls2flex1(tbls = results$mean_median_tbls, n_round = 3)
+mean_median_tbls <- set_caption(x = mean_median_tbls, caption = paste0("Expected mean and median values for ", ifelse(k > 1, " for each group", "")))
+
+tables <- results$life_tables
+
+
+if (k > 1) {
+  hypothesis_tbl <- NP_compare_curves(object = results,
+                         comp_type = params$comp_type, 
+                         p_adj_method = params$p_adjust_type)
+
+  hypothesis_tbl <- NP_tbls2flex3(tbls = hypothesis_tbl, n_round = 3)
+  hypothesis_tbl <- set_caption(x = hypothesis_tbl, caption = paste0("Statistical comparison of survival rates of each group"))
+}
+```
+  
+  
+```{r echo=FALSE, fig.cap= paste0("\\label{fig:figs}", curve_type, " curve"), dpi = 600, fig.height=4, fig.width=6, message=FALSE, warning=FALSE}
+plot
+```
+  
+  
+```{r warning=FALSE, echo = FALSE}
+mean_median_tbls
+```
+  
+  
+
+```{r echo = FALSE, warning = FALSE}
+if (k > 1) {
+  hypothesis_tbl
+}
+```
+
+  
+
+```{r warning = FALSE, echo = FALSE}
+for (i in 1:k) {
+  cat(group_levels[i], rep("=", 30), "\n")
+  print((round(tables[[i]], digits = 3)))
+  cat(rep("=", 40), "\n")
+}
+```
+

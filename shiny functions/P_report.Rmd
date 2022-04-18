@@ -1,0 +1,73 @@
+---
+title: "Parametric Survival Report"
+output:
+    word_document:
+      fig_caption: yes
+      always_allow_html: true
+params:
+  results: NULL
+  plot: NULL
+  curve_type: NULL
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# RAPOR
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(knitr)
+library(ggplot2)
+library(flextable)
+library(officer)
+# library(officedown)
+library(kableExtra)
+
+results <- params$results
+distribution <- results$distribution
+curve_type <- params$curve_type
+plot <- params$plot
+
+k <- length(results$mean_median_tbls)
+group_levels <- names(results$mean_median_tbls)
+
+mean_median_tbls <- P_tbls2flex1(tbls = results$mean_median_tbls, n_round = 3)
+mean_median_tbls <- set_caption(x = mean_median_tbls, caption = paste0("Expected mean and median values for ", distribution, " distribution", ifelse(k > 2, " for each group", "")))
+
+pars <- P_tbls2flex1(tbls = results$pars)
+pars <- set_caption(x = pars, caption = paste0("Expected parameter values for ", distribution, " distribution", ifelse(k > 1, " for each group", "")))
+
+life_tables <- results$life_tables
+# life_tables <- tbls2flex2(tbls = results$life_tables)
+# for (i in 1:k) {
+#   life_tables[[i]] <- set_caption(x = life_tables[[i]], caption = paste0("Life table for", distribution, " distribution", ifelse(k > 2, paste0(" for group", group_levels[i]), "")))
+# }
+```
+  
+  
+```{r echo=FALSE, fig.cap= paste0("\\label{fig:figs}", curve_type, " for ", distribution, " distribution"), dpi = 600, fig.height=4, fig.width=6, message=FALSE, warning=FALSE}
+plot
+```
+  
+  
+```{r warning=FALSE, echo = FALSE}
+mean_median_tbls
+```
+  
+  
+
+```{r warning=FALSE, echo = FALSE}
+pars
+```
+  
+  
+  
+
+```{r warning = FALSE, echo = FALSE}
+for (i in 1:k) {
+  cat(group_levels[i], rep("=", 30), "\n")
+  print((round(life_tables[[i]], digits = 3)))
+  cat(rep("=", 40), "\n")
+}
+```
+
